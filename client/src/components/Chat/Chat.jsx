@@ -10,17 +10,18 @@ const socket = io('http://localhost:3000');
 
 const Chat = () => {
   const selectedTask = useSelector((store) => store.selectedTaskReducer.task);
+  const user = useSelector((store) => store.currentUserReducer.userData);
   const taskId = selectedTask.task_id;
-  if (taskId === undefined) {
+  const userId = user.user_id;
+  if (taskId === undefined || userId === undefined) {
     return <></>;
   }
+  console.log('user: ', user);
   // input -> two user id's
   // get existing chat messages from database
   // display existing chat messages
   //
-  let user = useSelector((store) => store.currentUserReducer.userData); // from react-redux*********
-  let userId = user.user_id;
-  console.log('userId: ', userId);
+  // console.log('userId: ', userId);
   const url = 'http://localhost:3500';
   const [currentMessage, setCurrentMessage] = useState('');
   const [currentTask, setCurrentTask] = useState(taskId);
@@ -38,8 +39,6 @@ const Chat = () => {
     let trail = 'AM';
     let hour = Number(time.substring(0, 2));
     const minutes = time.slice(2);
-    // console.log(minutes);
-    // console.log(hour);
     if (hour >= 12) {
       hour -= 12;
       trail = 'PM';
@@ -56,12 +55,9 @@ const Chat = () => {
     const currentDayOfMonth = d.getDate();
     const currentMonth = d.getMonth(); // Be careful! January is 0, not 1
     const currentYear = d.getFullYear();
-    // const timeString = dStr.slice(16, 21);
     const timeString = formatTime(dStr.slice(16, 21));
     const dateString = (currentMonth + 1) + "/" + currentDayOfMonth + "/" + currentYear;
 
-    console.log(timeString);
-    console.log(dateString);
     const message = {
       userId,
       firstname: firstName,
@@ -69,17 +65,24 @@ const Chat = () => {
       message_body: currentMessage,
       date: dateString,
       time: timeString,
+      profile_picture_url: user.profile_picture_url,
     };
+
+    const body = {
+      messageBody: currentMessage,
+      data: dateString,
+      time: timeString,
+    };
+
+    axios.post(`${url}/api/messages/${taskId}/${userId}`, body)
+      .catch((err) => {
+        throw (err);
+      });
+
     socket.emit('send-message', { task: currentTask, message: message });
 
     setMessages((prev) => [...prev, message]); // ???
 
-    // axios.post(`${url}/${taskId}/${userId}`)
-    //   .catch((err) => {
-    //     throw (err);
-    //   });
-
-    // add message to
     const resetElements = document.getElementsByClassName('messageInput');
     for (let i = 0; i < resetElements.length; i++) {
       resetElements[i].value = '';
@@ -88,26 +91,21 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    // const result = window.prompt('Enter name and task number');
-    // const resultContainer = result.split(' ');
-    setFirstName();
-    setLastName();
+    setFirstName(user.firstname);
+    setLastName(user.lastname);
     setCurrentUser(userId);
     setCurrentTask(taskId);
     axios.get(`${url}/api/messages/${taskId}`)
       .then((data) => {
+        if (!data) {
+          return;
+        }
         setMessages(data.data);
       });
   }, [taskId, userId]);
 
   useEffect(() => {
-    // console.log('hi');
-    // console.log('result: ', result);
-    // setCurrentTask(taskId);
-    // socket.emit('join', 'room1');
     socket.on(currentTask, (data) => {
-      // console.log('currentTask: ', currentTask);
-      // console.log('data: ', data);
       setMessages((prev) => [...prev, data]);
     });
   }, [currentTask]);
@@ -122,7 +120,7 @@ const Chat = () => {
     width: '746px',
     height: '100vh',
     padding: '5px',
-    borderRadius: '20px'
+    borderRadius: '20px',
   };
 
   const messageContaierStyle = {
@@ -137,11 +135,10 @@ const Chat = () => {
         {messages.map((message, idx) => {
           // console.log('current User: ', currentUser);
           // console.log('info: ', message.firstname, ' ', message.lastname);
-          const user_1 = userId;
           // console.log(messages);
           let isUser;
-          console.log(user_1, currentUser);
-          if (user_1 === currentUser) {//set user to user id *********
+          console.log(userId, currentUser);
+          if (message.userId === currentUser) {//set user to user id *********
             isUser = true;
           } else {
             isUser = false;

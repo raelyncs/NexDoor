@@ -1,10 +1,11 @@
 import React from 'react';
 import { Container, Grid, Avatar } from '@material-ui/core';
+
 const Message = ({ message, isUser }) => {
   // console.log(message);
   let style;
-  // let profilePic = message.firstname[0];//******** uncomment
-  let profilePic = 'm';
+  const profilePic = message.firstname[0];//******** uncomment
+  // let profilePic = 'm';
   // console.log(profilePic);
   const dateStyle = {
     fontSize: '10px',
@@ -39,8 +40,10 @@ const Message = ({ message, isUser }) => {
       <Grid container display="flex" justifyContent="flex-end">
       <div style={style}>
         <span style={messageStyle}>{message.message_body}</span>
-        <div style={profilePicStyle}>{profilePic}</div>
+        {/* <div style={profilePicStyle}>{profilePic}</div> */}
+        <img src={message.profile_picture_url} style={profilePicStyle} />
         <div style={dateStyle}>{message.time} {message.date}</div>
+        {/* <img src={message.profile_picture_url} style={profilePicStyle} /> */}
         {/* <span>{message.time}</span> */}
       </div>
       </Grid>
@@ -52,7 +55,8 @@ const Message = ({ message, isUser }) => {
   };
   return (
     <div style={style}>
-      <span style={profilePicStyle}>{profilePic}</span>
+      {/* <span style={profilePicStyle}>{profilePic}</span> */}
+      <img src={message.profile_picture_url} style={profilePicStyle} />
       <div style={messageStyle}>{message.message_body}</div>
       <div style={dateStyle}>{message.time} {message.date}</div>
       {/* <span>{message.time}</span> */}
